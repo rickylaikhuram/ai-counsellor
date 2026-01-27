@@ -27,7 +27,17 @@ export async function getCurrentUser() {
 export async function requireAuth() {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login");
+    redirect("/signin");
   }
+  return user;
+}
+
+export async function requireOnboarding() {
+  const user = await requireAuth();
+
+  if (!user.profile?.isComplete) {
+    redirect("/onboarding");
+  }
+
   return user;
 }
