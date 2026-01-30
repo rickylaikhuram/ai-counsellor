@@ -1,67 +1,96 @@
-// app/dashboard/components/ProgressIndicator.tsx
-import type { DashboardState } from '../action'
+"use client";
+
+import { cn } from "@/libs/utils";
+import { Check } from "lucide-react";
+import type { DashboardState } from "../action";
 
 type Props = {
-  state: DashboardState
-}
+  state: DashboardState;
+};
 
 export function ProgressIndicator({ state }: Props) {
   const steps = [
-    { 
-      label: 'Profile', 
+    {
+      label: "Profile",
       complete: state.profile.isComplete,
-      active: !state.profile.isComplete
+      active: !state.profile.isComplete,
     },
-    { 
-      label: 'Counselling', 
+    {
+      label: "Counselling",
       complete: state.latestSession !== null,
-      active: state.profile.isComplete && !state.latestSession
+      active: state.profile.isComplete && !state.latestSession,
     },
-    { 
-      label: 'Shortlist', 
+    {
+      label: "Shortlist",
       complete: state.latestSession?.isLocked ?? false,
-      active: state.latestSession !== null && !state.latestSession.isLocked
+      active: state.latestSession !== null && !state.latestSession.isLocked,
     },
-    { 
-      label: 'Action Plan', 
-      complete: false, // Could add completion logic
-      active: state.latestSession?.isLocked ?? false
+    {
+      label: "Action Plan",
+      complete: false,
+      active: state.latestSession?.isLocked ?? false,
     },
-  ]
+  ];
 
   return (
-    <div className="bg-white rounded-xl shadow p-6">
-      <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4">Your Journey</h3>
-      <div className="flex items-center justify-between">
+    <div className="bg-white rounded-3xl border border-zinc-200/60 p-8 shadow-sm relative overflow-hidden">
+      {/* Decorative Glow */}
+      <div className="absolute top-0 right-0 -mr-16 -mt-16 h-32 w-32 rounded-full bg-indigo-50/50 blur-3xl" />
+
+      <h3 className="text-[11px] font-bold text-indigo-600 uppercase tracking-[0.2em] mb-8">
+        Your Journey
+      </h3>
+
+      <div className="flex items-center justify-between relative">
         {steps.map((step, index) => (
-          <div key={step.label} className="flex items-center flex-1">
+          <div
+            key={step.label}
+            className="flex items-center flex-1 last:flex-none"
+          >
             {/* Step circle */}
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center relative z-10">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center font-bold transition-all duration-300 border-2",
                   step.complete
-                    ? 'bg-green-600 text-white'
+                    ? "bg-teal-600 border-teal-600 text-white shadow-lg shadow-teal-100"
                     : step.active
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                }`}
+                      ? "bg-white border-teal-600 text-teal-600 shadow-md ring-4 ring-teal-50"
+                      : "bg-zinc-50 border-zinc-200 text-zinc-400",
+                )}
               >
-                {step.complete ? '✓' : index + 1}
+                {step.complete ? (
+                  <Check className="w-5 h-5 stroke-[3px]" />
+                ) : (
+                  index + 1
+                )}
               </div>
-              <span className="text-sm mt-2 font-medium">{step.label}</span>
+              <span
+                className={cn(
+                  "text-xs mt-4 font-bold tracking-tight transition-colors",
+                  step.active || step.complete
+                    ? "text-zinc-900"
+                    : "text-zinc-400",
+                )}
+              >
+                {step.label}
+              </span>
             </div>
 
             {/* Connector line */}
             {index < steps.length - 1 && (
-              <div
-                className={`h-1 flex-1 mx-2 ${
-                  step.complete ? 'bg-green-600' : 'bg-gray-200'
-                }`}
-              />
+              <div className="flex-1 mx-4 h-[2px] bg-zinc-100 relative -mt-5">
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-all duration-700 ease-in-out",
+                    step.complete ? "bg-teal-600 w-full" : "w-0",
+                  )}
+                />
+              </div>
             )}
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }

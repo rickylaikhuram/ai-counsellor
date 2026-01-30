@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/libs/auth";
 import Sidebar from "@/components/shared/Sidebar";
-import Navbar from "@/components/shared/Navbar";
 
 export default async function ProtectedLayout({
   children,
@@ -15,13 +14,8 @@ export default async function ProtectedLayout({
     redirect("/signin");
   }
 
-  // If authenticated but onboarding not complete, redirect to onboarding
-  // EXCEPT if already on onboarding page
   const isOnboardingComplete = user.profile?.isComplete ?? false;
 
-  // We need to check pathname, but we can't use usePathname in Server Component
-  // So we'll handle this differently - let onboarding page be accessible always
-  // and only gate other pages
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -33,7 +27,6 @@ export default async function ProtectedLayout({
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            <Navbar user={user} />
             <main className="flex-1 overflow-y-auto p-6">{children}</main>
           </div>
         </div>

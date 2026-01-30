@@ -1,4 +1,17 @@
+"use client";
+
 import { SessionStage } from "@/app/generated/prisma/enums";
+import {
+  Target,
+  Search,
+  Compass,
+  ListChecks,
+  Lock,
+  Sparkles,
+  Check,
+  Loader2,
+} from "lucide-react";
+import { cn } from "@/libs/utils";
 
 interface ProgressIndicatorProps {
   currentStage: SessionStage;
@@ -6,12 +19,16 @@ interface ProgressIndicatorProps {
 }
 
 const stages = [
-  { key: SessionStage.INTENT_CONFIRMED, label: "Intent", icon: "🎯" },
-  { key: SessionStage.PROFILE_ANALYZED, label: "Analysis", icon: "🔍" },
-  { key: SessionStage.DECISION_FRAMED, label: "Path", icon: "⚖️" },
-  { key: SessionStage.SHORTLISTED, label: "Shortlist", icon: "📋" },
-  { key: SessionStage.LOCKED, label: "Lock", icon: "🔒" },
-  { key: SessionStage.ACTION_PLAN_CREATED, label: "Action Plan", icon: "✨" },
+  { key: SessionStage.INTENT_CONFIRMED, label: "Intent", icon: Target },
+  { key: SessionStage.PROFILE_ANALYZED, label: "Analysis", icon: Search },
+  { key: SessionStage.DECISION_FRAMED, label: "Path", icon: Compass },
+  { key: SessionStage.SHORTLISTED, label: "Shortlist", icon: ListChecks },
+  { key: SessionStage.LOCKED, label: "Lock", icon: Lock },
+  {
+    key: SessionStage.ACTION_PLAN_CREATED,
+    label: "Action Plan",
+    icon: Sparkles,
+  },
 ];
 
 export default function ProgressIndicator({
@@ -21,59 +38,73 @@ export default function ProgressIndicator({
   const currentIndex = stages.findIndex((s) => s.key === currentStage);
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-      <div className="flex items-center justify-between">
+    <div className="bg-white rounded-[2rem] border border-zinc-200/60 shadow-xl shadow-zinc-200/20 p-8 mb-8 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-indigo-500 to-emerald-500 opacity-20" />
+
+      <div className="flex items-center justify-between relative">
         {stages.map((stage, index) => {
           const isComplete = index < currentIndex;
           const isCurrent = index === currentIndex;
-          const isUpcoming = index > currentIndex;
+          const Icon = stage.icon;
 
           return (
-            <div key={stage.key} className="flex items-center flex-1">
+            <div
+              key={stage.key}
+              className="flex items-center flex-1 last:flex-none"
+            >
               {/* Stage Circle */}
-              <div className="flex flex-col items-center relative">
+              <div className="flex flex-col items-center relative group">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold transition-all duration-300 ${
+                  className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 z-10 border-2",
                     isComplete
-                      ? "bg-green-500 text-white"
+                      ? "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-100"
                       : isCurrent
-                        ? "bg-indigo-600 text-white ring-4 ring-indigo-200"
-                        : "bg-gray-200 text-gray-400"
-                  }`}
+                        ? "bg-white border-indigo-600 text-indigo-600 shadow-xl ring-4 ring-indigo-50"
+                        : "bg-zinc-50 border-zinc-200 text-zinc-400",
+                  )}
                 >
                   {isComplete ? (
-                    <svg
-                      className="w-6 h-6"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <Check className="w-6 h-6 stroke-[3px]" />
                   ) : (
-                    stage.icon
+                    <Icon
+                      className={cn("w-5 h-5", isCurrent && "animate-pulse")}
+                    />
                   )}
                 </div>
+
                 <span
-                  className={`mt-2 text-xs font-medium ${
-                    isCurrent ? "text-indigo-600" : "text-gray-600"
-                  }`}
+                  className={cn(
+                    "mt-3 text-[11px] font-bold uppercase tracking-wider transition-colors duration-300",
+                    isCurrent
+                      ? "text-indigo-600"
+                      : isComplete
+                        ? "text-emerald-600"
+                        : "text-zinc-400",
+                  )}
                 >
                   {stage.label}
                 </span>
+
+                {/* Pulse for Current Stage */}
+                {isCurrent && (
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                  </span>
+                )}
               </div>
 
               {/* Connector Line */}
               {index < stages.length - 1 && (
-                <div className="flex-1 h-1 mx-2 relative">
+                <div className="flex-1 h-[2px] mx-4 bg-zinc-100 relative -mt-6">
                   <div
-                    className={`absolute inset-0 transition-all duration-500 ${
-                      isComplete ? "bg-green-500" : "bg-gray-200"
-                    }`}
-                  ></div>
+                    className={cn(
+                      "absolute inset-0 transition-all duration-700 ease-in-out",
+                      isComplete ? "bg-emerald-500" : "w-0",
+                    )}
+                  />
                 </div>
               )}
             </div>
@@ -81,26 +112,38 @@ export default function ProgressIndicator({
         })}
       </div>
 
-      {/* Status Text */}
-      <div className="mt-4 text-center">
-        <p className="text-sm text-gray-600">
+      {/* Status Text Box */}
+      <div className="mt-8 pt-6 border-t border-zinc-50 flex justify-center">
+        <div
+          className={cn(
+            "px-6 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all",
+            isLocked && currentStage === SessionStage.ACTION_PLAN_CREATED
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+              : isLocked
+                ? "bg-amber-50 text-amber-700 border border-amber-100"
+                : "bg-zinc-50 text-zinc-600 border border-zinc-100",
+          )}
+        >
           {isLocked && currentStage === SessionStage.ACTION_PLAN_CREATED ? (
-            <span className="text-green-600 font-semibold">
-              ✅ Counselling Complete - Session Locked
-            </span>
+            <>
+              <Check className="w-4 h-4" />Counselling Complete - Session
+              Locked
+            </>
           ) : isLocked ? (
-            <span className="text-yellow-600 font-semibold">
-              🔒 Session Locked - Generating Action Plan
-            </span>
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Session Locked - Generating Action Plan
+            </>
           ) : (
             <>
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
               Step {currentIndex + 1} of {stages.length}:{" "}
-              <span className="font-semibold">
+              <span className="text-zinc-900 ml-1">
                 {stages[currentIndex].label}
               </span>
             </>
           )}
-        </p>
+        </div>
       </div>
     </div>
   );
