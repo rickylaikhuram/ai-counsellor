@@ -2,7 +2,7 @@
 
 import prisma  from "@/libs/prisma";
 import { onboardingSchema } from "../lib/schemas";
-import { normalizeGpa } from "../lib/utils";
+import { normalizeGpa } from "@/libs/utils";
 import { revalidatePath } from "next/cache";
 
 export async function saveProfile(userId: string, data: unknown) {
