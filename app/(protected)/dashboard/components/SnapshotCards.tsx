@@ -1,34 +1,41 @@
 // app/dashboard/components/SnapshotCards.tsx
-import type { DashboardState } from '../action'
+import type { DashboardState } from "../action";
 
 type Props = {
-  state: DashboardState
-}
+  state: DashboardState;
+};
+type CardVariant = "success" | "warning" | "neutral";
+
+type Card = {
+  label: string;
+  value: string | number;
+  variant: CardVariant;
+};
 
 export function SnapshotCards({ state }: Props) {
-  const cards = [
+  const cards: Card[] = [
     {
-      label: 'Profile Status',
-      value: state.profile.isComplete ? 'Complete' : 'Incomplete',
-      variant: state.profile.isComplete ? 'success' : 'warning',
+      label: "Profile Status",
+      value: state.profile.isComplete ? "Complete" : "Incomplete",
+      variant: state.profile.isComplete ? "success" : "warning",
     },
     {
-      label: 'Shortlisted Universities',
+      label: "Shortlisted Universities",
       value: state.stats.shortlistedCount,
-      variant: 'neutral',
+      variant: "neutral",
     },
     {
-      label: 'Pending Tasks',
+      label: "Pending Tasks",
       value: state.stats.pendingTasksCount,
-      variant: state.stats.pendingTasksCount > 0 ? 'warning' : 'success',
+      variant: state.stats.pendingTasksCount > 0 ? "warning" : "success",
     },
-  ]
+  ];
 
   const variantStyles = {
-    success: 'border-green-200 bg-green-50',
-    warning: 'border-amber-200 bg-amber-50',
-    neutral: 'border-gray-200 bg-white',
-  }
+    success: "border-green-200 bg-green-50",
+    warning: "border-amber-200 bg-amber-50",
+    neutral: "border-gray-200 bg-white",
+  };
 
   return (
     <div>
@@ -39,11 +46,13 @@ export function SnapshotCards({ state }: Props) {
             key={card.label}
             className={`rounded-lg border-2 p-6 ${variantStyles[card.variant]}`}
           >
-            <p className="text-sm font-medium text-gray-600 mb-1">{card.label}</p>
+            <p className="text-sm font-medium text-gray-600 mb-1">
+              {card.label}
+            </p>
             <p className="text-3xl font-bold">{card.value}</p>
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }

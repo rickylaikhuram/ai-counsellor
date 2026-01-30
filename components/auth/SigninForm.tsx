@@ -49,9 +49,9 @@ export function SigninForm() {
       const profileInfo = await loginRedirect(email);
 
       if (profileInfo.success && profileInfo.data?.isComplete) {
-        router.push("/dashboard");
+        await router.push("/dashboard");
       } else {
-        router.push("/onboarding");
+        await router.push("/onboarding");
       }
 
       router.refresh();

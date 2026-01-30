@@ -29,7 +29,7 @@ export default async function OnboardingPage() {
         </p>
       </div>
 
-      <OnboardingContainer userId={user.id} existingProfile={existingProfile} />
+      <OnboardingContainer userId={user.id} />
     </div>
   );
 }

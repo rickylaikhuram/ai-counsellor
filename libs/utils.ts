@@ -1,17 +1,19 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export function normalizeGpa(
   gpa: number,
-  scale: "4.0" | "10.0" | "100",
+  scale: "4.0" | "5.0" | "10.0" | "100",
 ): number {
   switch (scale) {
     case "4.0":
       return (gpa / 4.0) * 100;
+    case "5.0":
+      return (gpa / 5.0) * 100;
     case "10.0":
       return (gpa / 10.0) * 100;
     case "100":

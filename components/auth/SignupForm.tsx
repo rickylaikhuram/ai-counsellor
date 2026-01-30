@@ -46,9 +46,9 @@ export function SignupForm() {
         setError(
           "Account created, but failed to log in automatically. Please log in manually.",
         );
-        router.push("/login");
+        await router.push("/signin");
       } else {
-        router.push("/onboarding");
+        await router.push("/onboarding");
       }
     } else {
       setError(result.error || "Something went wrong");

@@ -142,6 +142,7 @@ export default function AcademicStep({
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="4.0">4.0</option>
+              <option value="5.0">5.0</option>
               <option value="10.0">10.0</option>
               <option value="100">100</option>
             </select>
