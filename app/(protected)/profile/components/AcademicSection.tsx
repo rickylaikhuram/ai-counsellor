@@ -27,10 +27,10 @@ export default function AcademicSection({
           >
             <option value="">Select level</option>
             <option value="High School">High School</option>
-            <option value="Associate Degree">Associate Degree</option>
-            <option value="Bachelor's Degree">Bachelor's Degree</option>
-            <option value="Master's Degree">Master's Degree</option>
-            <option value="Doctorate">Doctorate</option>
+            <option value="Diploma Degree">Diploma Degree</option>
+            <option value="Bachelor's">Bachelor's</option>
+            <option value="Master's">Master's</option>
+            <option value="PhD">PhD</option>
           </select>
           {errors.educationLevel && (
             <p className="mt-1 text-sm text-red-600">

@@ -38,6 +38,7 @@ export default function AcademicStep({
           >
             <option value="">Select education level</option>
             <option value="High School">High School</option>
+            <option value="Diploma Degree">Diploma Degree</option>
             <option value="Bachelor's">Bachelor's</option>
             <option value="Master's">Master's</option>
             <option value="PhD">PhD</option>
