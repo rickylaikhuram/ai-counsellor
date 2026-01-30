@@ -56,6 +56,8 @@ model Profile {
   major          String?
   graduationYear Int?
   gpa            Float?
+  gpaScale       String? // "4.0" | "5.0" | "10.0" | "100"
+  normalizedGpa  Float? // Auto-calculated: 0-100 scale
 
   // Study Goals
   targetDegree       String?
