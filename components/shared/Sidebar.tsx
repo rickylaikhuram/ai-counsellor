@@ -5,7 +5,6 @@ export default function Sidebar({ user }: { user: User }) {
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: "📊" },
     { name: "AI Counsellor", href: "/counsellor", icon: "🤖" },
-    { name: "Universities", href: "/universities", icon: "🎓" },
     { name: "Applications", href: "/applications", icon: "📝" },
     { name: "Profile", href: "/profile", icon: "👤" },
   ];
