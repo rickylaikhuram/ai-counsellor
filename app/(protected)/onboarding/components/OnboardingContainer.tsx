@@ -1,146 +1,138 @@
 "use client";
 
 import { useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { Profile } from "@/app/generated/prisma/client";
-import StepIndicator from "./StepIndicator";
+import { onboardingSchema, type OnboardingFormData } from "../lib/schemas";
+import { saveProfile } from "../actions/profile";
 import AcademicStep from "./steps/AcademicStep";
-import StudyGoalStep from "./steps/StudyGoalStep";
-import BudgetStep from "./steps/BudgetStep";
-import ExamsStep from "./steps/ExamsStep";
-import NavigationButtons from "./NavigationButtons";
-import {
-  AcademicStepData,
-  StudyGoalStepData,
-  BudgetStepData,
-  ExamsStepData,
-} from "@/libs/validators/onboarding";
+import TargetProgramStep from "./steps/TargetProgramStep";
+import PreferencesStep from "./steps/PreferencesStep";
+import TestPrepStep from "./steps/TestPrepStep";
+import StepIndicator from "./ui/StepIndicator";
 
 interface OnboardingContainerProps {
-  existingProfile: Profile | null;
+  userId: string;
 }
 
 export default function OnboardingContainer({
-  existingProfile,
+  userId,
 }: OnboardingContainerProps) {
-  const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
-  // Form data state
-  const [academicData, setAcademicData] = useState<Partial<AcademicStepData>>(
-    existingProfile
-      ? {
-          educationLevel: existingProfile.educationLevel,
-          degree: existingProfile.degree || undefined,
-          major: existingProfile.major || undefined,
-          graduationYear: existingProfile.graduationYear || undefined,
-          gpa: existingProfile.gpa || undefined,
-        }
-      : {},
-  );
-
-  const [studyGoalData, setStudyGoalData] = useState<
-    Partial<StudyGoalStepData>
-  >(
-    existingProfile
-      ? {
-          targetDegree: existingProfile.targetDegree || undefined,
-          fieldOfStudy: existingProfile.fieldOfStudy || undefined,
-          targetIntake: existingProfile.targetIntake || undefined,
-          preferredCountries: existingProfile.preferredCountries || [],
-        }
-      : { preferredCountries: [] },
-  );
-
-  const [budgetData, setBudgetData] = useState<Partial<BudgetStepData>>(
-    existingProfile
-      ? {
-          budgetMin: existingProfile.budgetMin || undefined,
-          budgetMax: existingProfile.budgetMax || undefined,
-          fundingPlan: existingProfile.fundingPlan || undefined,
-        }
-      : {},
-  );
-
-  const [examsData, setExamsData] = useState<ExamsStepData>({
-    ieltsStatus: existingProfile?.ieltsStatus || "NOT_STARTED",
-    greStatus: existingProfile?.greStatus || "NOT_STARTED",
-    sopStatus: existingProfile?.sopStatus || "NOT_STARTED",
+  const methods = useForm<OnboardingFormData>({
+    resolver: zodResolver(onboardingSchema),
+    mode: "onBlur",
+    defaultValues: {
+      educationLevel: "",
+      degree: "",
+      major: "",
+      graduationYear: new Date().getFullYear(),
+      gpa: 0,
+      gpaScale: "4.0",
+      targetDegree: "",
+      fieldOfStudy: "",
+      targetIntake: "",
+      preferredCountries: [],
+      budgetMin: 0,
+      budgetMax: 0,
+      fundingPlan: "SELF_FUNDED",
+      ieltsStatus: "NOT_STARTED",
+      greStatus: "NOT_STARTED",
+      sopStatus: "NOT_STARTED",
+    },
   });
 
-  const totalSteps = 4;
+  const handleNext = async () => {
+    let fieldsToValidate: (keyof OnboardingFormData)[] = [];
 
-  const handleNext = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
+    switch (currentStep) {
+      case 1:
+        fieldsToValidate = [
+          "educationLevel",
+          "degree",
+          "major",
+          "graduationYear",
+          "gpa",
+          "gpaScale",
+        ];
+        break;
+      case 2:
+        fieldsToValidate = ["targetDegree", "fieldOfStudy", "targetIntake"];
+        break;
+      case 3:
+        fieldsToValidate = [
+          "preferredCountries",
+          "budgetMin",
+          "budgetMax",
+          "fundingPlan",
+        ];
+        break;
+      case 4:
+        fieldsToValidate = ["ieltsStatus", "greStatus", "sopStatus"];
+        break;
+    }
+
+    const isValid = await methods.trigger(fieldsToValidate);
+
+    if (isValid) {
+      if (currentStep < 4) {
+        setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3 | 4);
+      }
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3 | 4);
     }
   };
 
-  const handleComplete = () => {
-    router.push("/dashboard");
-    router.refresh();
+  const onSubmit = async (data: OnboardingFormData) => {
+    setIsSubmitting(true);
+    try {
+      const result = await saveProfile(userId, data);
+      if (result.success) {
+        router.push("/dashboard");
+      } else {
+        alert("Failed to save profile. Please try again.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  
+
+  const stepProps = {
+    onNext: handleNext,
+    onBack: handleBack,
+    isFirstStep: currentStep === 1,
+    isLastStep: currentStep === 4,
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-lg p-8">
-      {/* Navigation */}
-      <NavigationButtons
-        currentStep={currentStep}
-        totalSteps={totalSteps}
-        onBack={handleBack}
-        isSubmitting={isSubmitting}
-      />
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-3xl mx-auto">
+        <StepIndicator currentStep={currentStep} totalSteps={4} />
 
-      {/* Step Indicator */}
-      <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
-
-      {/* Step Content */}
-      <div className="mt-8 mb-8">
-        {currentStep === 1 && (
-          <AcademicStep
-            data={academicData}
-            setData={setAcademicData}
-            isSubmitting={isSubmitting}
-            setIsSubmitting={setIsSubmitting}
-            onNext={handleNext}
-          />
-        )}
-        {currentStep === 2 && (
-          <StudyGoalStep
-            data={studyGoalData}
-            setData={setStudyGoalData}
-            isSubmitting={isSubmitting}
-            setIsSubmitting={setIsSubmitting}
-            onNext={handleNext}
-          />
-        )}
-        {currentStep === 3 && (
-          <BudgetStep
-            data={budgetData}
-            setData={setBudgetData}
-            isSubmitting={isSubmitting}
-            setIsSubmitting={setIsSubmitting}
-            onNext={handleNext}
-          />
-        )}
-        {currentStep === 4 && (
-          <ExamsStep
-            data={examsData}
-            setData={setExamsData}
-            isSubmitting={isSubmitting}
-            setIsSubmitting={setIsSubmitting}
-            onComplete={handleComplete}
-          />
-        )}
+        <div className="bg-white rounded-lg shadow-md p-8 mt-8">
+          <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onSubmit)}>
+              {currentStep === 1 && <AcademicStep {...stepProps} />}
+              {currentStep === 2 && <TargetProgramStep {...stepProps} />}
+              {currentStep === 3 && <PreferencesStep {...stepProps} />}
+              {currentStep === 4 && (
+                <TestPrepStep {...stepProps} isSubmitting={isSubmitting} />
+              )}
+            </form>
+          </FormProvider>
+        </div>
       </div>
-
     </div>
   );
 }

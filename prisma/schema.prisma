@@ -14,16 +14,15 @@ datasource db {
 }
 
 model User {
-  id                      String                  @id @default(cuid())
-  email                   String                  @unique
-  name                    String
-  password                String
-  createdAt               DateTime                @default(now())
-  updatedAt               DateTime                @updatedAt
-  profile                 Profile?
-  shortlistedUniversities ShortlistedUniversity[]
-  tasks                   Task[]
-  chatMessages            ChatMessage[]
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  name                String
+  password            String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  profile             Profile?
+  tasks               Task[]
+  counsellingSessions CounsellingSession[]
 }
 
 enum FundingPlan {
@@ -107,11 +106,13 @@ enum Level {
 }
 
 model ShortlistedUniversity {
-  id               String             @id @default(cuid())
-  userId           String
-  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  universityId     String
-  university       University         @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  id                   String             @id @default(cuid())
+  counsellingSessionId String
+  counsellingSession   CounsellingSession @relation(fields: [counsellingSessionId], references: [id], onDelete: Cascade)
+
+  universityId String
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
   category         UniversityCategory
   isLocked         Boolean            @default(false)
   reasoning        String             @db.Text
@@ -135,17 +136,22 @@ enum Priority {
 }
 
 model Task {
-  id           String      @id @default(cuid())
-  userId       String
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  counsellingSessionId String
+  counsellingSession   CounsellingSession @relation(fields: [counsellingSessionId], references: [id], onDelete: Cascade)
+
   universityId String?
   university   University? @relation(fields: [universityId], references: [id])
-  title        String
-  description  String?     @db.Text
-  status       TaskStatus  @default(TODO)
-  priority     Priority    @default(MEDIUM)
-  dueDate      DateTime?
-  createdAt    DateTime    @default(now())
+
+  title       String
+  description String?    @db.Text
+  status      TaskStatus @default(TODO)
+  priority    Priority   @default(MEDIUM)
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
 }
 
 enum Role {
@@ -154,10 +160,52 @@ enum Role {
 }
 
 model ChatMessage {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String             @id @default(cuid())
+  sessionId String
+  session   CounsellingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
   role      Role
   content   String   @db.Text
   timestamp DateTime @default(now())
+  userId    String?
+}
+
+model CounsellingSession {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  intent       Intent?
+  riskLevel    Level?
+  decisionPath DecisionPath?
+  stage        SessionStage @default(INTENT_CONFIRMED)
+  isLocked     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chatMessages ChatMessage[]
+  shortlisted  ShortlistedUniversity[]
+  tasks        Task[]
+}
+
+enum Intent {
+  EXPLORING
+  SHORTLISTING
+  READY
+}
+
+enum DecisionPath {
+  LOW_COST
+  BALANCED
+  HIGH_RISK
+}
+
+enum SessionStage {
+  INTENT_CONFIRMED
+  PROFILE_ANALYZED
+  DECISION_FRAMED
+  SHORTLISTED
+  LOCKED
+  ACTION_PLAN_CREATED
 }

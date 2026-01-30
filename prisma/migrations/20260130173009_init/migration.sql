@@ -22,6 +22,15 @@ CREATE TYPE "Priority" AS ENUM ('LOW', 'MEDIUM', 'HIGH');
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('USER', 'ASSISTANT');
 
+-- CreateEnum
+CREATE TYPE "Intent" AS ENUM ('EXPLORING', 'SHORTLISTING', 'READY');
+
+-- CreateEnum
+CREATE TYPE "DecisionPath" AS ENUM ('LOW_COST', 'BALANCED', 'HIGH_RISK');
+
+-- CreateEnum
+CREATE TYPE "SessionStage" AS ENUM ('INTENT_CONFIRMED', 'PROFILE_ANALYZED', 'DECISION_FRAMED', 'SHORTLISTED', 'LOCKED', 'ACTION_PLAN_CREATED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -43,6 +52,8 @@ CREATE TABLE "Profile" (
     "major" TEXT,
     "graduationYear" INTEGER,
     "gpa" DOUBLE PRECISION,
+    "gpaScale" TEXT,
+    "normalizedGpa" DOUBLE PRECISION,
     "targetDegree" TEXT,
     "fieldOfStudy" TEXT,
     "targetIntake" TEXT,
@@ -77,7 +88,7 @@ CREATE TABLE "University" (
 -- CreateTable
 CREATE TABLE "ShortlistedUniversity" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "counsellingSessionId" TEXT NOT NULL,
     "universityId" TEXT NOT NULL,
     "category" "UniversityCategory" NOT NULL,
     "isLocked" BOOLEAN NOT NULL DEFAULT false,
@@ -95,6 +106,7 @@ CREATE TABLE "ShortlistedUniversity" (
 CREATE TABLE "Task" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "counsellingSessionId" TEXT NOT NULL,
     "universityId" TEXT,
     "title" TEXT NOT NULL,
     "description" TEXT,
@@ -109,12 +121,28 @@ CREATE TABLE "Task" (
 -- CreateTable
 CREATE TABLE "ChatMessage" (
     "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "sessionId" TEXT NOT NULL,
     "role" "Role" NOT NULL,
     "content" TEXT NOT NULL,
     "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT,
 
     CONSTRAINT "ChatMessage_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CounsellingSession" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "intent" "Intent",
+    "riskLevel" "Level",
+    "decisionPath" "DecisionPath",
+    "stage" "SessionStage" NOT NULL DEFAULT 'INTENT_CONFIRMED',
+    "isLocked" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "CounsellingSession_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -127,7 +155,7 @@ CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId");
 ALTER TABLE "Profile" ADD CONSTRAINT "Profile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ShortlistedUniversity" ADD CONSTRAINT "ShortlistedUniversity_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ShortlistedUniversity" ADD CONSTRAINT "ShortlistedUniversity_counsellingSessionId_fkey" FOREIGN KEY ("counsellingSessionId") REFERENCES "CounsellingSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ShortlistedUniversity" ADD CONSTRAINT "ShortlistedUniversity_universityId_fkey" FOREIGN KEY ("universityId") REFERENCES "University"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -136,7 +164,13 @@ ALTER TABLE "ShortlistedUniversity" ADD CONSTRAINT "ShortlistedUniversity_univer
 ALTER TABLE "Task" ADD CONSTRAINT "Task_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Task" ADD CONSTRAINT "Task_counsellingSessionId_fkey" FOREIGN KEY ("counsellingSessionId") REFERENCES "CounsellingSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Task" ADD CONSTRAINT "Task_universityId_fkey" FOREIGN KEY ("universityId") REFERENCES "University"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "CounsellingSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CounsellingSession" ADD CONSTRAINT "CounsellingSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
